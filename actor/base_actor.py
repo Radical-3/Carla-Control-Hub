@@ -17,5 +17,5 @@ class Base_Actor:
     def exist(self):
         return False if self._actor is None else True
 
-    def itself(self):
+    def item(self):
         return self._actor

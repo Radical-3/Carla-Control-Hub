@@ -32,7 +32,7 @@ class Camera(Base_Actor):
             camera_transform = carla.Transform(carla.Location(x=self.__offset_x, y=self.__offset_y, z=self.__offset_z),
                                                carla.Rotation(pitch=pitch, yaw=yaw, roll=roll))
 
-            self._actor = self._world.spawn_actor(blueprint, camera_transform, attach_to=self.__attach.itself())
+            self._actor = self._world.spawn_actor(blueprint, camera_transform, attach_to=self.__attach.item())
 
         if self._actor is not None:
             self._id = self._actor.id
