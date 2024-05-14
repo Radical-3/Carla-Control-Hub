@@ -9,8 +9,7 @@ from factory import Vehicle_Factory, Sensor_Factory
 from log import logger
 from processor import Processor
 
-from utils import (generate_random_offset, consistency_check, packing, cut_images_to_square, cut_images_label_to_square,
-                   semantic_segmentation_to_mask)
+from utils import generate_random_offset, package
 
 
 def dataset_generate():
@@ -53,7 +52,6 @@ def dataset_generate():
         with open(os.path.join(label_path, f"{identifier}.txt"), 'a+') as f:
             for label in labels:
                 f.write(f"{label[0]} {label[1]} {label[2]} {label[3]}\n")
-
         processor.remove_camera()
         sensor_factory.destroy_actor(camera)
 
@@ -63,8 +61,4 @@ def dataset_generate():
     sensor_factory.clear_factory()
     processor.destroy()
 
-    cut_images_to_square(config)
-    cut_images_label_to_square(config)
-    semantic_segmentation_to_mask(config)
-    consistency_check(config)
-    packing(config)
+    package(config)

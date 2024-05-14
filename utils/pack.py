@@ -6,6 +6,14 @@ import numpy as np
 from tqdm import tqdm
 
 
+def package(config):
+    cut_images_to_square(config)
+    cut_images_label_to_square(config)
+    semantic_segmentation_to_mask(config)
+    consistency_check(config)
+    packing(config)
+
+
 # 文件的一致性检测函数
 def consistency_check(config):
     # 读取数据集路径并分别获得图片、掩码、相机、标签路径
@@ -85,11 +93,12 @@ def cut_images_label_to_square(config):
     # 得到要裁剪的label的path
     label_path = os.path.join(path, "label")
     original_size = config.image_size
-    new_size = [min(config.image_size)] * 2
+    new_size = min(config.image_size)
     crop_amount = [0, 0]
+
     # 得到要裁剪的长度和宽度
-    crop_amount[0] = (original_size[0] - new_size[0]) // 2
-    crop_amount[1] = (original_size[1] - new_size[1]) // 2
+    crop_amount[0] = (original_size[1] - new_size) // 2
+    crop_amount[1] = (original_size[0] - new_size) // 2
 
     # 检索图片后缀格式,找到存储物体四个角的坐标的文件，并将其保存在列表中
     labels = list()
@@ -169,7 +178,7 @@ def packing(config):
             with open(os.path.join(label_path, f"{identifier}.txt"), "r") as f:
                 label = f.readline().split()
             # 转换格式
-            identifier = np.array(identifier, dtype=np.uint32)
+            identifier = np.array(identifier, dtype=np.int64)
             image = np.array(image, dtype=np.uint8)
             mask = np.array(mask, dtype=np.uint8)
             label = np.array(label, dtype=np.int16)
