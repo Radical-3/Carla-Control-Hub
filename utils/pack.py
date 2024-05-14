@@ -169,7 +169,7 @@ def packing(config):
             with open(os.path.join(label_path, f"{identifier}.txt"), "r") as f:
                 label = f.readline().split()
             # 转换格式
-            identifier = np.array(identifier, dtype=np.int16)
+            identifier = np.array(identifier, dtype=np.uint32)
             image = np.array(image, dtype=np.uint8)
             mask = np.array(mask, dtype=np.uint8)
             label = np.array(label, dtype=np.int16)

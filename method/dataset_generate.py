@@ -36,7 +36,7 @@ def dataset_generate():
     os.makedirs(camera_position_path)
     os.makedirs(label_path)
 
-    start_time = int(time.time())
+    start_time = int(1715443200)
     for i in range(config.dataset_generate_image_num):
         offset = generate_random_offset(config)
         camera = sensor_factory.spawn_actor("camera.rgb", vehicle, config.image_size, config.fov, offset)
