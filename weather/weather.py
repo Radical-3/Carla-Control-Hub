@@ -8,7 +8,7 @@ from log import logger
 class Weather:
     def __init__(self, connect):
         self.__client = connect.client()
-        self.__world = connect.__world()
+        self.__world = connect.world()
         # 用于保存预设天气的字典
         self.__presets = dict()
         # 用于保存天气参数的字典
@@ -25,7 +25,7 @@ class Weather:
         # 打印所有的预设天气
         logger.debug("The weather presets are as follows:")
         logger.debug(" | ".join(sorted(list(self.__presets.keys()))))
-        return self.__presets
+        return self.__presets.keys()
 
     def parameters(self):
         # 打印所有的天气参数
