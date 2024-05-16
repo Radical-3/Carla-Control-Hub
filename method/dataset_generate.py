@@ -10,6 +10,7 @@ from log import logger
 from processor import Processor
 
 from utils import generate_random_offset, package
+from weather import Weather
 
 
 def dataset_generate():
@@ -18,6 +19,8 @@ def dataset_generate():
 
     connect = Connect(config)
     processor = Processor(config, connect)
+    weather = Weather(connect)
+    weather.switch_by_presets("CloudySunset")
     vehicle_factory = Vehicle_Factory(connect)
     sensor_factory = Sensor_Factory(connect)
 
