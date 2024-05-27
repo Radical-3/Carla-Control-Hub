@@ -1,9 +1,5 @@
-import os
 import random
-
-import cv2
 import numpy as np
-from tqdm import tqdm
 
 
 # 得到相机的投影矩阵，作用是将三维物体在相机坐标系中的位置投影到图像平面上
@@ -62,4 +58,3 @@ def generate_colors():
         h = '#' + item
         palette.append(tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4)))
     return palette
-
