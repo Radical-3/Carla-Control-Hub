@@ -42,9 +42,9 @@ def dataset_generate():
     for i in range(config.dataset_generate_image_num):
         offset = generate_random_offset(config)
         camera = sensor_factory.spawn_actor("camera.rgb", vehicle, config.image_size, config.fov, offset)
-        time.sleep(config.dataset_generate_interval)
-
         processor.add_camera(camera)
+
+        time.sleep(config.dataset_generate_interval)
         image, semantic_segmentation, labels, position = processor.process()
         identifier = round(time.time() - start_time + 1)
 

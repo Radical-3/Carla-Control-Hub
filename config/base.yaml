@@ -30,9 +30,9 @@ visual_assessment_height: 5
 
 # dataset_generate ----------------------------------------------------------------------
 dataset_path: output
-dataset_name: test
+dataset_name: default1
 dataset_generate_use_radius: True
-dataset_generate_radius: 6
+dataset_generate_radius: 10
 dataset_generate_height: 5
 dataset_generate_offset_x: 8
 dataset_generate_offset_y: 8
