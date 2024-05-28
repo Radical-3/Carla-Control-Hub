@@ -15,8 +15,6 @@
 - 传感器数据导出保存
 - 打包数据集
 
-具体的业务方法已被集成后放置在method包，  
-若需要使用，请调用method包中方法。
 
 
 ## Installation
@@ -30,24 +28,19 @@
     ```shell
     python --version
     ```
-4. 安装依赖包
+4. 安装项目的总依赖包
    ```shell
-    conda create --name <env> --file requirements.txt
+    pip install -r requirements.txt
     ```
 
 ## Usage
 
-以生成数据集为例，使用以下操作运行操作台
-
-1. 运行Carla
+1. 项目中的方法已经集成到method包中，通过对外暴露接口`test_script.py`统一调用。
     ```shell
-    ./CarlaUE4.sh
+    python test_script.py
     ```
-2. 配置config文件，通过修改config目录下的base.yaml文件中的参数来配置生成数据集的相关参数。
-3. 运行操作台
-    ```shell
-    python data_generation.py 
-    ```
+2. 修改配置文件base.yaml中可以直接改变生成的数据集的参数 例如： 修改base.yaml中的dataset_generate_image_num参数可以改变生成的数据集的大小
+3. 生成的数据集会保存在output文件夹中
 
 ## Contributing
 
