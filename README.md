@@ -47,7 +47,7 @@
 本项目由[@黑羽彻](https://github.com/ZhaoZhiqiao)
 管理、 [@Caesar545](https://github.com/Caesar545)、[@He Fasheng](https://github.com/clown001)协同开发。  
 若项目存在任何问题，欢迎提交issue或pull requests，也可以直接通过邮箱联系[@黑羽彻](https://github.com/ZhaoZhiqiao):
-zhao_zhiqiao@outlook.com。
+zhaozhiqiao.work@gmail.com。
 
 ## License
 
