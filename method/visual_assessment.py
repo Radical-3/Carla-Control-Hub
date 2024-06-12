@@ -48,7 +48,7 @@ def camera_process(config, camera_control_pipe, camera_data_pipe, vehicle_id, of
     camera = sensor_factory.spawn_actor("camera.rgb", vehicle, config.image_size, config.fov, offset)
     processor.add_camera(camera)
 
-    max_fps = 1 / config.visual_assessment_max_fps
+    max_fps = 1 / config.visual_assessment_data_retrieval_rate
     while True:
         if camera_control_pipe[1].poll():
             state = camera_control_pipe[1].recv()
@@ -97,17 +97,32 @@ def visual_assessment():
     row = math.ceil(math.sqrt(num))
     scale = 1 / row
     results = list()
+
+    is_save = config.visual_assessment_save_video
+    video_path = config.visual_assessment_video_path
+    fps = config.visual_assessment_video_fps
+    video = None
+    is_first = True
+
     while True:
         results = [camera_data_pipe_p[i].recv() if camera_data_pipe_p[i].poll() else results[i] for i in range(num)]
         if len(results) % row != 0:
             results.extend([np.ones_like(results[0])] * (row - len(results) % row))
         image = np.vstack([np.hstack(results[i:i + row]) for i in range(0, len(results), row)])
-        cv2.imshow("Carla", cv2.resize(image, (0, 0), fx=scale, fy=scale))
+        frame = cv2.cvtColor(cv2.resize(image, (0, 0), fx=scale, fy=scale), cv2.COLOR_BGRA2BGR)
+
+        if is_first and is_save:
+            is_first = False
+            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+            video = cv2.VideoWriter(video_path, fourcc, fps, (frame.shape[1], frame.shape[0]))
+
+        if is_save:
+            video.write(frame)
+        cv2.imshow("Carla", frame)
         if cv2.waitKey(1) == ord('q'):
+            video.release()
             cv2.destroyAllWindows()
             break
 
     [camera_control_pipe_p[i].send(True) for i in range(num)]
     vehicle_control_pipe[0].send(True)
-
-
