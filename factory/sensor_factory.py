@@ -22,6 +22,13 @@ class Sensor_Factory(Base_Factory):
         self.__arguments[sensor.id()] = [blueprint, attach, image_size, fov, offset]
         logger.debug(f"Spawn a {category} successfully,id is {sensor.id()}")
         return sensor
+    def spawn_spec_actor(self, category=None, vehicle_transform=None, image_size=None, fov=None, offset=None):
+        blueprint = self._world.get_blueprint_library().find('sensor.' + category)
+        sensor = Camera(self._world, blueprint, vehicle_transform, image_size, fov, offset)
+        self._actor_id_list.append(sensor.id())
+        self.__arguments[sensor.id()] = [blueprint, vehicle_transform, image_size, fov, offset]
+        logger.debug(f"Spawn a {category} successfully,id is {sensor.id()}")
+        return sensor
 
     def production(self, sensor_id):
         sensor = None

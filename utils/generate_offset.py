@@ -19,6 +19,10 @@ def generate_random_offset(config):
     return x, y, z
 
 
+def generate_specify_offset(config):
+    # return -10, 0, 10
+    return 0, 10, 10
+
 def generate_series_offset(config):
     theta = np.linspace(0, 2 * np.pi, config.visual_assessment_camera_num, endpoint=False)
     phi = np.arccos(config.visual_assessment_height / config.visual_assessment_radius)  # 垂直角度

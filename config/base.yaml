@@ -24,21 +24,17 @@ city_object_labels: [ 14 ]
 
 # visual_assessment -------------------------------------------------------------------------
 visual_assessment_camera_num: 4
-visual_assessment_data_retrieval_rate: 60
-visual_assessment_save_video: True
-visual_assessment_video_fps: 30
-visual_assessment_video_path: output/video.mp4
-
+visual_assessment_max_fps: 60
 visual_assessment_radius: 8
 visual_assessment_height: 5
 
 # dataset_generate ----------------------------------------------------------------------
 dataset_path: output
-dataset_name: default1
+dataset_name: ostrack1
 dataset_generate_use_radius: True
-dataset_generate_radius: 5
+dataset_generate_radius: 10
 dataset_generate_height: 5
 dataset_generate_offset_x: 8
 dataset_generate_offset_y: 8
-dataset_generate_image_num: 50
+dataset_generate_image_num: 100
 dataset_generate_interval: 1 # at least 1

@@ -5,7 +5,7 @@ class Base_Actor:
     def __init__(self, world):
         self._world = world
         self._id = None
-        self._actor = None
+        self.actor = None
 
     def destroy(self):
         logger.error("You should implement this method in your subclass")
@@ -15,7 +15,7 @@ class Base_Actor:
         return self._id
 
     def exist(self):
-        return False if self._actor is None else True
+        return False if self.actor is None else True
 
     def item(self):
-        return self._actor
+        return self.actor

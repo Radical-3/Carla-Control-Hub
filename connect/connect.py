@@ -34,6 +34,9 @@ class Connect:
         else:
             logger.error("set async True first")
 
+    def load_world(self, town):
+        self.__world = self.__client.load_world(town)
+
     def get_traffic_manager_port(self):
         if self.__trafficmanager is None:
             self.__trafficmanager = self.__client.get_trafficmanager(self.__config.traffic_manager_port)

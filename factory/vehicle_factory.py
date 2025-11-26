@@ -45,6 +45,34 @@ class Vehicle_Factory(Base_Factory):
         else:
             logger.error(f"Spawn vehicle failed")
 
+    def spawn_spec_actor(self, name=None, num=None):
+        vehicle = None
+        if len(self.__spawn_points) > 0:
+            # 若姓名不为空且在蓝图库中,生成指定蓝图车辆，否则随机选择蓝图生成车辆
+            if name is not None and self.__blueprint_library.find("vehicle." + name):
+                logger.debug(f"Spawn vehicle named {name}")
+                blueprint = self.__blueprint_library.find("vehicle." + name)
+            else:
+                logger.debug(f"Spawn vehicle randomly")
+                blueprint = random.choice(list(self.__blueprint_library))
+            if num is None:
+                logger.debug(f"Spawn at random point")
+                spawn_point = random.choice(self.__spawn_points)
+            else:
+                logger.debug(f"Spawn at the specified point")
+                spawn_point = self.__spawn_points[num]
+            vehicle = Vehicle(self._world, blueprint, spawn_point)
+        else:
+            logger.error(f"No spawn points remaining")
+
+        if vehicle.exist():
+            logger.debug(f"Spawn a vehicle successfully,id is {vehicle.id()}")
+            self._actor_id_list.append(vehicle.id())
+            # self.__spawn_points.remove(spawn_point)
+            return vehicle, spawn_point
+        else:
+            logger.error(f"Spawn vehicle failed")
+
     def spawn_batch_actor(self, batch, name=None):
         # 判断是否仍有剩余生成点
         if len(self.__spawn_points) > 0:
