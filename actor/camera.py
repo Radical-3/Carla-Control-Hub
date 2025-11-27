@@ -28,8 +28,8 @@ class Camera(Base_Actor):
             blueprint.set_attribute('image_size_y', f"{self.__image_height}")
 
             pitch = math.degrees(math.atan2(-self.__offset_z, math.sqrt(self.__offset_x ** 2 + self.__offset_y ** 2)))
-            # yaw = math.degrees(math.atan2(-self.__offset_y, -self.__offset_x))
-            yaw = math.degrees(math.atan2(-self.__offset_y, -self.__offset_x)) + 30
+            yaw = math.degrees(math.atan2(-self.__offset_y, -self.__offset_x))
+            # yaw = math.degrees(math.atan2(-self.__offset_y, -self.__offset_x)) + 30
             roll = 0
             true_x = vehicle_transform.location.x + self.__offset_x
             true_y = vehicle_transform.location.y + self.__offset_y
@@ -44,9 +44,16 @@ class Camera(Base_Actor):
             #     self.actor = self._world.spawn_actor(blueprint, camera_transform)
             # else:
             #     self.actor = self._world.spawn_actor(blueprint, camera_transform, attach_to=self.__attach.item())
-            self.actor = self._world.spawn_actor(blueprint, self.__camera_transform)
-            print("camera")
-            print(self.actor.get_transform())
+            try:
+                self.actor = self._world.spawn_actor(blueprint, self.__camera_transform)
+                # 先暂停一下看下面的print是不是正确的相机位置
+                # 不加上这个sleep输出的位置是原点，加上的就是正确相机位置，说明有延迟，但是相机位置是没错的
+                # time.sleep(1)
+                # print("相机生成成功！")
+                # print(f"相机最终位置: {self.actor.get_transform()}")
+
+            except RuntimeError as e:
+                print(f"相机生成失败！原因: {e}")
 
         if self.actor is not None:
             self._id = self.actor.id
