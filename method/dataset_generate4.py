@@ -58,21 +58,66 @@ def dataset_generate4():
     start_time = int(1715443200)
     offset = generate_specify_offset(config)
     # camera = sensor_factory.spawn_actor("camera.rgb", vehicle, config.image_size, config.fov, offset)
-    camera_queue = queue.Queue()
-    semantic_queue = queue.Queue()
-    camera = sensor_factory.spawn_spec_actor("camera.rgb", vehicle_transform, config.image_size, config.fov, offset)
-
+    # camera_queue = queue.Queue()
+    # semantic_queue = queue.Queue()
+    # 同步队列，用于存储配对的RGB和语义分割图像
+    sync_queue = queue.Queue()
+    
     # 这里暂停一会是因为刚开始车会从天上掉下来，这时候不用拍照
     time.sleep(2)
-    # listen是每次获取到图片就把图片传到()中的函数里并调用
-    camera.actor.listen(lambda image: processor.listen_rgb(image, camera_queue))
-
-
-    # 这是加上了随机小幅度偏移相机，但是实际来看好像偏移的太大了
-    # camera.actor.listen(lambda image: (camera_queue.put(image), move_camera_with_noise(camera)))
+    camera = sensor_factory.spawn_spec_actor("camera.rgb", vehicle_transform, config.image_size, config.fov, offset)
     camera_semantic_segmentation = processor.add_camera_return_seman_camera(camera)
-    camera_semantic_segmentation.actor.listen(semantic_queue.put)
-    # camera_semantic_segmentation.actor.listen(lambda image: (semantic_queue.put(image), move_camera_with_noise(camera_semantic_segmentation)))
+    
+    # 创建一个字典来存储图像，按键是时间戳
+    image_buffer = {}
+    
+    # 定义同步回调函数
+    def sync_callback(image, queue_type):
+        timestamp = image.timestamp
+        # 将图像存储在缓冲区中
+        if timestamp not in image_buffer:
+            image_buffer[timestamp] = {}
+        
+        # 如果是RGB图像，同时收集车辆状态信息
+        if queue_type == 'rgb':
+            # 拍照瞬间：记录相机位置（拍照时的位置，而非处理时）
+            camera_pos = camera.get_position_for_render()
+            # 拍照瞬间：收集所有车辆的状态（transform + bounding box世界顶点）
+            vehicle_states = []
+            for veh in connect.world().get_actors().filter('vehicle.*'):
+                # 关键：用车辆当前帧的transform计算bbox世界顶点（拍照时的位置）
+                bbox_world_vertices = [v for v in veh.bounding_box.get_world_vertices(veh.get_transform())]
+                vehicle_states.append({
+                    'transform': veh.get_transform(),
+                    'bbox_world': bbox_world_vertices
+                })
+            # 将RGB图像、车辆状态和相机位置一起存储
+            image_buffer[timestamp]['rgb'] = (image, vehicle_states, camera_pos)
+        else:
+            # 语义分割图像直接存储
+            image_buffer[timestamp][queue_type] = image
+        
+        # 检查是否拥有同一时间戳的RGB和语义分割图像
+        if 'rgb' in image_buffer[timestamp] and 'semantic' in image_buffer[timestamp]:
+            # 将配对的图像放入同步队列
+            # 注意：这里rgb_data是一个元组 (image, vehicle_states, camera_pos)
+            sync_queue.put({
+                'rgb': image_buffer[timestamp]['rgb'],
+                'semantic': image_buffer[timestamp]['semantic'],
+                'timestamp': timestamp
+            })
+            # 从缓冲区中删除已处理的时间戳
+            del image_buffer[timestamp]
+            
+            # 清理旧的时间戳以防止内存泄漏
+            old_timestamps = [ts for ts in image_buffer.keys() if ts < timestamp - 1.0]
+            for old_ts in old_timestamps:
+                del image_buffer[old_ts]
+    
+    # listen是每次获取到图片就把图片传到()中的函数里并调用
+    camera.actor.listen(lambda image: sync_callback(image, 'rgb'))
+    camera_semantic_segmentation.actor.listen(lambda image: sync_callback(image, 'semantic'))
+
     camera.clear_picture_queue()
     camera_semantic_segmentation.clear_picture_queue()
     flag = 0
@@ -80,23 +125,31 @@ def dataset_generate4():
         # offset = generate_random_offset(config)
         # camera = sensor_factory.spawn_actor("camera.rgb", vehicle, config.image_size, config.fov, offset)
         # processor.add_camera(camera)
-        if camera_queue.qsize() > config.dataset_generate_image_num or semantic_queue.qsize() > config.dataset_generate_image_num:
+        if sync_queue.qsize() > config.dataset_generate_image_num:
             if flag == 0:
                 camera.actor.stop()
                 camera_semantic_segmentation.actor.stop()
                 flag = 1
         # 这是干啥的来着？？
         time.sleep(config.dataset_generate_interval)
-        image, semantic_segmentation, labels, position = processor.process_queue(camera_queue, semantic_queue)
-        identifier = round(time.time() - start_time + 1)
+        
+        # 从同步队列中获取配对的图像
+        if not sync_queue.empty():
+            image_pair = sync_queue.get()
+            # 处理配对的图像
+            # 从image_pair['rgb']元组中提取数据
+            rgb_image_data, vehicle_states, camera_pos = image_pair['rgb']
+            image, semantic_segmentation, labels, position = processor.process_sync_images(
+                (None, rgb_image_data, vehicle_states, camera_pos), image_pair['semantic'])
+            identifier = round(time.time() - start_time + 1)
 
-        cv2.imwrite(os.path.join(image_path, f"{identifier}.png"), image)
-        cv2.imwrite(os.path.join(semantic_segmentation_path, f"{identifier}.png"), semantic_segmentation)
-        with open(os.path.join(camera_position_path, f"{identifier}.txt"), 'a+') as f:
-            f.write(f"{position[0]} {position[1]} {position[2]}")
-        with open(os.path.join(label_path, f"{identifier}.txt"), 'a+') as f:
-            for label in labels:
-                f.write(f"{label[0]} {label[1]} {label[2]} {label[3]}\n")
+            cv2.imwrite(os.path.join(image_path, f"{identifier}.png"), image)
+            cv2.imwrite(os.path.join(semantic_segmentation_path, f"{identifier}.png"), semantic_segmentation)
+            with open(os.path.join(camera_position_path, f"{identifier}.txt"), 'a+') as f:
+                f.write(f"{position[0]} {position[1]} {position[2]}")
+            with open(os.path.join(label_path, f"{identifier}.txt"), 'a+') as f:
+                for label in labels:
+                    f.write(f"{label[0]} {label[1]} {label[2]} {label[3]}\n")
         # processor.remove_camera()
         # sensor_factory.destroy_actor(camera)
 

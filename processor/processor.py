@@ -254,6 +254,53 @@ class Processor:
                     labels.append([left_top[0], left_top[1], right_bottom[0], right_bottom[1]])
         return image, semantic_segmentation, labels, position
 
+    def process_sync_images(self, rgb_image_data, semantic_image_data):
+        """
+        处理同步的RGB图像和语义分割图像
+        
+        Args:
+            rgb_image_data: 包含RGB图像和车辆状态的元组 ('rgb', image, vehicle_states, position)
+            semantic_image_data: 语义分割图像数据
+            
+        Returns:
+            tuple: (image, semantic_segmentation, labels, position)
+        """
+        if self.__camera is None:
+            logger.error("No camera")
+            return None
+
+        # 解析RGB图像数据
+        _, image_raw, vehicle_states, position = rgb_image_data
+        
+        # 转换图像数据
+        image = np.reshape(np.copy(image_raw.raw_data), (image_raw.height, image_raw.width, 4))
+        semantic_segmentation = np.reshape(np.copy(semantic_image_data.raw_data), 
+                                         (semantic_image_data.height, semantic_image_data.width, 4))
+
+        world_to_camera_matrix = np.array(self.__camera.get_inverse_matrix())
+
+        labels = list()
+        # 处理每辆车的状态
+        for vehicle_state in vehicle_states:
+            coordinates = list()
+            # 使用同步的边界框顶点
+            for point in vehicle_state['bbox_world']:
+                coordinates.append(camera_location_to_image_location(point,
+                                                                 self.__projection_matricx,
+                                                                 world_to_camera_matrix))
+
+            coordinates = np.array(coordinates, dtype=np.int16)
+            center = np.mean(coordinates, axis=0, dtype=np.int16)[::-1]
+            left_top = np.min(coordinates, axis=0).astype(np.int16)
+            right_bottom = np.max(coordinates, axis=0).astype(np.int16)
+
+            if 0 < center[0] < image.shape[0] and 0 < center[1] < image.shape[1]:
+                B, G, R, A = semantic_segmentation[center[0], center[1]]
+                if R in self.__city_object_labels:
+                    labels.append([left_top[0], left_top[1], right_bottom[0], right_bottom[1]])
+
+        return image, semantic_segmentation, labels, position
+
     def destroy(self):
         self.__sensor_factory.clear_factory()
         logger.debug("destroy processor successfully")
