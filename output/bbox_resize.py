@@ -44,7 +44,7 @@ def convert_bbox_format(label_dir, output_file):
                     h = y2 - y1
                     
                     # 写入 groundtruth.txt，格式为: filename,x1,y1,w,h
-                    out_f.write(f"{base_name},{int(x1)},{int(y1)},{int(w)},{int(h)}\n")
+                    out_f.write(f"{int(x1)},{int(y1)},{int(w)},{int(h)}\n")
     
     print(f"转换完成，共处理 {len(label_files) - len(empty_files)} 个标签文件")
     print(f"结果已保存至: {output_file}")
