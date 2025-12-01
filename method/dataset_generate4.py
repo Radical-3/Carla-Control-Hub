@@ -80,8 +80,19 @@ def dataset_generate4():
         
         # 如果是RGB图像，同时收集车辆状态信息
         if queue_type == 'rgb':
-            # 拍照瞬间：记录相机位置（拍照时的位置，而非处理时）
-            camera_pos = camera.get_position_for_render()
+            # 拍照瞬间：计算相机相对于主车辆的位置（保持与get_position_for_render相同的格式）
+            camera_location = camera.actor.get_transform().location
+            vehicle_location = vehicle.item().get_transform().location
+            # 计算相对位置
+            relative_x = camera_location.x - vehicle_location.x
+            relative_y = camera_location.y - vehicle_location.y
+            relative_z = camera_location.z - vehicle_location.z
+            # 转换为距离、仰角和方位角格式
+            distance = math.sqrt(relative_x ** 2 + relative_y ** 2 + relative_z ** 2)
+            elevation = math.degrees(math.atan2(relative_z, math.sqrt(relative_x ** 2 + relative_y ** 2)))
+            azimuth = math.degrees(math.atan2(relative_y, -relative_x))
+            # azimuth = math.degrees(math.atan2(-relative_y, -relative_x))
+            camera_pos = (distance, elevation, azimuth)
             # 拍照瞬间：收集所有车辆的状态（transform + bounding box世界顶点）
             vehicle_states = []
             for veh in connect.world().get_actors().filter('vehicle.*'):
